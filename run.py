@@ -15,7 +15,9 @@ import time, sys, os
 def run():
     # Frames_Camera0_Queue = queue.Queue() # keep raw picam frames #RawFramesQueue
     # Frames_Camera1_Queue = queue.Queue() # keep all data to save on SD card - frames,mavlink msg, target msg
-    # MavlinkSendQueue = queue.Queue() # msgs to send via mavlink
+    MavlinkSendQueue = queue.Queue() # msgs to send via mavlink
+    SaveQueue = queue.Queue()
+
     # WebShowQueue = queue.Queue() # img to visualise via web-server
 
     #get frames from camera0
@@ -27,16 +29,17 @@ def run():
     #     dict(RawFramesQueue=Frames_Camera1_Queue))
     
     # main frame processing, target detection/tracking
-    OpticalFlowThread = Thread(target=optflow.proc_optflow, kwargs=dict())
+    OpticalFlowThread = Thread(target=optflow.proc_optflow, kwargs=dict(MavlinkSendQueue = MavlinkSendQueue))
         # dict(
         #     InputFramesQueue=Frames_Camera0_Queue,
         #     MavlinkSendQueue=MavlinkSendQueue)
     # )
     AttitudeThread = Thread(target=attitude.proc_attitude, kwargs=dict())
     # save the data on SD card
-    #SaveThread = Thread(target=save.save_data, kwargs=dict(SaveQueue=SaveQueue))
+    SaveThread = Thread(target=save.save_data, kwargs=dict(SaveQueue=SaveQueue))
     # recv/send data via mavlink
     MavlinkThread = Thread(target=mavlink.proc_mavlink)
+
 
     # create visual imgs
     #WebShowThread = Thread(target=web.web_show, kwargs=dict(WebShowQueue=WebShowQueue))

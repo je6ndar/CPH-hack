@@ -10,17 +10,13 @@ import modules.types as types
 import modules.config as config
 
 
-MIN_MEASUREMENT = 10 # minimum valid measurement that the autopilot should use
-MAX_MEASUREMENT = 40 # maximum valid measurement that the autopilot should use
-SENSOR_TYPE = 10
-if hasattr(mavutil.mavlink, 'MAV_OPTICAL_FLOW'):
-    SENSOR_TYPE = mavutil.mavlink.MAV_OPTICAL_FLOW
+w = 640
+h = 480
 
-SENSOR_ID = 1
-ORIENTATION = mavutil.mavlink.MAV_SENSOR_ROTATION_PITCH_270 # downward facing
-COVARIENCE = 0
+A = w/2
+FOV = 110
 
-
+flow = [0, 0]
 ALTITUDE = 0
 
 SYSTEM_ID = None
@@ -84,9 +80,6 @@ def proc_mavlink(MavlinkSendQueue=None, SaveQueue=None):
             if in_msg.get_type() == 'UFR_HUD':
                 ALTITUDE = in_msg.alt
             if in_msg.get_type() == 'ATTITUDE':
-                print(f"ATTITUDE: {in_msg}, Roll: {in_msg.roll}, Pitch: {in_msg.pitch}, Yaw: {in_msg.yaw}")
-                with open('attitude_log.txt', 'a') as f:
-                    f.write(f'{time.time()} {in_msg}\n')
                 pass
 
             try:
@@ -137,9 +130,10 @@ class MavlinkMessageItem:
 def convert_msg(item):
     msg = None
     # https://mavlink.io/en/messages/common.html#SET_POSITION_TARGET_LOCAL_NED
-    if type(item) == types.OpticalFlowVector:
-        v = item.v
-        msg = create_v_msg(v, ALTITUDE)
+    if type(item) == types.OpticalFlow:
+        flow = item.flow
+        confidence = item.confidence
+        msg = create_v_msg(flow, confidence, ALTITUDE)
         pass
     # https://mavlink.io/en/messages/common.html#STATUSTEXT
     elif type(item) == types.Status:
@@ -152,26 +146,37 @@ def convert_msg(item):
 
 
 # TODO - time?
-def create_v_msg(v, altitude):
-    if not MAVCONN:
-        return None
-    unix_time = time.time()
+
+def message_send(msg):
+    if MAVCONN and msg:
+                res = MAVCONN.mav.send(msg)
+
+def create_v_msg(v,confidence, altitude):
+
+    # Send the SET_ATTITUDE_TARGET message
+    # flow_comp_m_x = (v[0]-w/2)*altitude/focal
+    # flow_comp_m_y = (v[1]-h/2)*altitude/focal
+    flow_comp_m_x, flow_comp_m_y, flow_x_radians, flow_y_radians = calculate_camera_motion(v[0], v[1], FOV, w, h, 100)
+    print(flow_comp_m_x, flow_comp_m_y)
+    if np.isnan([flow_comp_m_y, flow_comp_m_y,flow_x_radians, flow_y_radians]).any():
+         return
     # Send the SET_ATTITUDE_TARGET messaged
-    msg = MAVCONN.MAVLink_optical_flow_message(
-        time_usec = 0,        # Time since boot or Unix time in microseconds
-        sensor_id = SENSOR_ID,        # ID of the optical flow sensor
-        flow_x = 0,           # Integrated flow X (radians * 1000)
-        flow_y = 0,           # Integrated flow Y (radians * 1000)
-        flow_comp_m_x = 0,    # Integrated X flow (meters)
-        flow_comp_m_y = 0,    # Integrated Y flow (meters)
-        quality = 0,          # Optical flow quality (0-255)
-        ground_distance = altitude,  # Ground distance (meters)
-        flow_rate_x = 0,      # X angular velocity (rad/s)
-        flow_rate_y = 0      # Y angular velocity (rad/s)
+    msg = MAVCONN.mav.optical_flow_send(
+        time_usec = 0,        # Time since boot or Unix time in microseconds        
+        flow_comp_m_x = flow_comp_m_x,    
+        flow_comp_m_y = flow_comp_m_y,    
+        ground_distance = altitude,  
+        flow_x = int(flow_x_radians * 1000),#v[0],           
+        flow_y = int(flow_y_radians * 1000),#v[1],
+        sensor_id = 0,           
+        quality = int(confidence*255),          
+        flow_rate_x = 0,      
+        flow_rate_y = 0
     )
 
-
     return msg
+
+
 
 
 def init_mavlink():
@@ -238,15 +243,32 @@ def request_message_interval(master, message_id: int, frequency_hz: float):
         0, # Target address of message stream (if message has target address fields). 0: Flight-stack default (recommended), 1: address of requestor, 2: broadcast.
     )
 
-def get_throttle(msg):
-    throttle = None
-    if msg.get_type() == 'RC_CHANNELS':
-        throttle = np.clip(msg.chan3_raw/1000 - 1, 0, 1)
-        return throttle
-    else:
-        if THROTTLE is not None:
-            return THROTTLE
-        else: 
-            print("error getting throttle")
-            return throttle
 
+
+def calculate_camera_motion(flow_x, flow_y, fov, width, height, distance_to_surface):
+    """
+    Calculate the camera's motion in real-world units based on optical flow and camera parameters.
+
+    :param flow_x: Optical flow displacement in pixels (x-direction).
+    :param flow_y: Optical flow displacement in pixels (y-direction).
+    :param fov_x: Camera's horizontal field of view (degrees).
+    :param fov_y: Camera's vertical field of view (degrees).
+    :param width: Image width in pixels.
+    :param height: Image height in pixels.
+    :param distance_to_surface: Distance from the camera to the surface (meters or same units as result).
+    :return: Real-world displacement (Delta_X, Delta_Y, Total_Distance).
+    """
+    # Convert FOV to radians
+    fov_x_rad = np.radians(fov)
+    fov_y_rad = np.radians(fov)
+
+    # Convert pixel displacements to angular displacements
+    theta_x = flow_x * (fov_x_rad / width)  # Angular displacement in radians (x)
+    theta_y = flow_y * (fov_y_rad / height)  # Angular displacement in radians (y)
+
+    # Convert angular displacements to real-world distances
+    delta_x = distance_to_surface * np.tan(theta_x)
+    delta_y = distance_to_surface * np.tan(theta_y)
+
+
+    return delta_x, delta_y, theta_x, theta_y

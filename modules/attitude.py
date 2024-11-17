@@ -1,13 +1,14 @@
 # standard libraries
 import platform
 import numpy as np
-import time
+import time, os
 # import json
 import cv2
 from time import sleep
 from timeit import default_timer as timer
 # from itertools import count
 # from datetime import datetime
+import modules.types as type
 
 # my libraries
 from modules.video_classes import CustomVideoCapture
@@ -67,6 +68,8 @@ def proc_attitude():
 
                 output = horizon_detector.find_horizon(scaled_and_cropped_frame)
                 roll, pitch, variance, is_good_horizon, _ = output
+                attitudeVisual  = type.AttitudeVisual(roll, pitch)
+
                 # USE THESE VARIABLES IN THE REST OF THE CODE
                 print(f'Camera Roll: {roll}, Pitch: {pitch}, Variance: {variance}, Is good horizon: {is_good_horizon}')
                 f.write(f'{time.time()} {roll} {pitch} {variance} {is_good_horizon}\n')
@@ -74,7 +77,19 @@ def proc_attitude():
                 print('No frame')
 
     print('---------------------END---------------------')
+class AttitudeVisual:
+    def __init__(self, roll, pitch):
+        self.roll = roll
+        self.pitch = pitch
 
+    def save(self, out_dn):
+            fn = os.path.join(out_dn, MAVLINK_SAVE_FN)
+            with open(fn, 'at') as out_f:
+                d = self.msg.to_dict()
+                d['os_time'] = self.os_time
+                json.dump(d, out_f)
+                out_f.write('\n')
+                #out_f.flush()
 
 def list_and_open_cameras():
     # Test camera indices to find connected cameras
