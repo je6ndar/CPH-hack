@@ -51,7 +51,7 @@ class CustomVideoCapture:
             if ret:
                 self.number_of_frames += 1
             else:
-                print('Cannot get frames. Ending program.')
+                print('Cannot get frames from camera. Ending program.')
                 self.run = False
                 self.release()
 

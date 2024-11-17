@@ -2,6 +2,7 @@
 import platform
 import numpy as np
 # import json
+import cv2
 from time import sleep
 from timeit import default_timer as timer
 # from itertools import count
@@ -46,7 +47,9 @@ def proc_attitude():
         INFERENCE_RESOLUTION = (inference_width, inference_height)
         print(f'The inference resolution has been adjusted to: {INFERENCE_RESOLUTION}')
 
-    video_capture = CustomVideoCapture(RESOLUTION, SOURCE)
+    sources = list_and_open_cameras()
+    print(f'Sources: {sources}')
+    video_capture = CustomVideoCapture(RESOLUTION, str(sources[0]))
 
     video_capture.start_stream()
     sleep(1)
@@ -64,3 +67,24 @@ def proc_attitude():
         # USE THESE VARIABLES IN THE REST OF THE CODE
 
     print('---------------------END---------------------')
+
+
+def list_and_open_cameras():
+    # Test camera indices to find connected cameras
+    index = 0
+    connected_cameras = []
+    while True:
+        cap = cv2.VideoCapture(index)
+        if not cap.read()[0]:  # If the read fails, assume no more cameras
+            break
+        connected_cameras.append(index)
+        cap.release()
+        index += 1
+
+    print(f"Connected cameras: {connected_cameras}")
+    
+    # Check if there are any cameras connected
+    if not connected_cameras:
+        print("No USB-connected cameras detected.")
+        return
+    return connected_cameras
