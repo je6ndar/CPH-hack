@@ -56,10 +56,10 @@ def proc_attitude():
     video_capture.start_stream()
     sleep(1)
 
+    crop_and_scale_parameters = get_cropping_and_scaling_parameters(video_capture.resolution, INFERENCE_RESOLUTION)
+    horizon_detector = HorizonDetector(EXCLUSION_THRESH, FOV, ACCEPTABLE_VARIANCE, INFERENCE_RESOLUTION)
     while True:
-        crop_and_scale_parameters = get_cropping_and_scaling_parameters(video_capture.resolution, INFERENCE_RESOLUTION)
-        horizon_detector = HorizonDetector(EXCLUSION_THRESH, FOV, ACCEPTABLE_VARIANCE, INFERENCE_RESOLUTION)
-        frame = video_capture.read_frame()
+        frame = video_capture.cap.read()
         if frame:
             scaled_and_cropped_frame = crop_and_scale(frame, **crop_and_scale_parameters)
 
