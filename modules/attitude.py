@@ -50,7 +50,7 @@ def proc_attitude():
 
     sources = list_and_open_cameras()
     print(f'Sources: {sources}')
-    video_capture = CustomVideoCapture(RESOLUTION, str(sources[1]))
+    video_capture = CustomVideoCapture(RESOLUTION, str(sources[0]))
 
     video_capture.start_stream()
     sleep(1)
