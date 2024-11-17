@@ -3,6 +3,7 @@ import modules.camera0 as camera0
 import modules.camera1 as camera1
 import modules.mavlink as mavlink
 import modules.optical_flow as optflow
+import modules.optical_flow as optflow
 
 import modules.config as config
 
@@ -26,7 +27,7 @@ def run():
         dict(RawFramesQueue=Frames_Camera1_Queue))
     
     # main frame processing, target detection/tracking
-    OpticalFlowThread = Thread(target=optflow.proc_frames, kwargs=\
+    OpticalFlowThread = Thread(target=optflow.proc_optflow, kwargs=\
         dict(
             InputFramesQueue=Frames_Camera0_Queue,
             MavlinkSendQueue=MavlinkSendQueue)
