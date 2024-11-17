@@ -83,6 +83,11 @@ def proc_mavlink(MavlinkSendQueue=None, SaveQueue=None):
             #print(in_msg)
             if in_msg.get_type() == 'UFR_HUD':
                 ALTITUDE = in_msg.alt
+            if in_msg.get_type() == 'ATTITUDE':
+                print(f"ATTITUDE: {in_msg}, Roll: {in_msg.roll}, Pitch: {in_msg.pitch}, Yaw: {in_msg.yaw}")
+                with open('attitude_log.txt', 'a') as f:
+                    f.write(f'{time.time()} {in_msg}\n')
+                pass
 
             try:
                 if SaveQueue:
@@ -97,6 +102,13 @@ def proc_mavlink(MavlinkSendQueue=None, SaveQueue=None):
 
         try:
             out_msg = MavlinkSendQueue.get_nowait()
+            # get attitude from mavlink
+            # if out_msg == 'ATTITUDE':
+            if MAVCONN:
+                MAVCONN.mav.request_data_stream_send(
+                    SYSTEM_ID, SYSTEM_COMPONENT,
+                    mavutil.mavlink.MAV_DATA_STREAM_POSITION, 10, 1)
+
             out_msg_mavlink = convert_msg(out_msg)
             if MAVCONN and out_msg_mavlink:
                 res = MAVCONN.mav.send(out_msg_mavlink)
@@ -195,7 +207,9 @@ def init_mavlink():
     print("Heartbeat from system (system %u component %u)" % (mavconn.target_system, mavconn.target_component))
     #perform_timesync_from_systime(mavconn)
 
-    request_message_interval(mavconn, mavutil.mavlink.MAVLINK_MSG_ID_ATTITUDE_QUATERNION, 100)
+    # request_message_interval(mavconn, mavutil.mavlink.MAVLINK_MSG_ID_ATTITUDE_QUATERNION, 100)
+    # mavutil.mav.
+    # request_message_interval(mavconn, mavutil.mavlink.MAVLINK_MSG_ID_ATTITUDE, 100)
     #request_message_interval(mavconn, mavutil.mavlink.MAVLINK_MSG_ID_RC_CHANNELS_RAW, ATT_FREQ_Hz)#mavutil.mavlink.MAVLINK_MSG_ID_RC_CHANNELS_RAW)
 
     return mavconn
