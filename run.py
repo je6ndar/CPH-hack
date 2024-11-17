@@ -16,8 +16,6 @@ def run():
     Frames_Camera1_Queue = queue.Queue() # keep all data to save on SD card - frames,mavlink msg, target msg
     MavlinkSendQueue = queue.Queue() # msgs to send via mavlink
     WebShowQueue = queue.Queue() # img to visualise via web-server
-    
-
 
     #get frames from camera0
     ProcessCamera0Thread= Thread(target=camera0.process_usbcam, kwargs=\
@@ -33,7 +31,7 @@ def run():
             InputFramesQueue=Frames_Camera0_Queue,
             MavlinkSendQueue=MavlinkSendQueue)
     )
-    AttitudeThread = Thread(target=attitude.)
+    # AttitudeThread = Thread(target=attitude.proc_attitude, qwargs=dict(MavlinkSendQueue=MavlinkSendQueue))
     # save the data on SD card
     #SaveThread = Thread(target=save.save_data, kwargs=dict(SaveQueue=SaveQueue))
     # recv/send data via mavlink
