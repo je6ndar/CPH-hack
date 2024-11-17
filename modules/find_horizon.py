@@ -7,7 +7,6 @@ import platform
 import numpy as np
 from numpy.linalg import norm
 from math import atan2, cos, sin, pi, degrees, radians
-from draw_display import draw_horizon
 
 # constants
 FULL_ROTATION = 360

@@ -1,5 +1,4 @@
 import numpy as np
-import quaternion
 
 from pymavlink import mavutil
 import time
@@ -13,7 +12,10 @@ import modules.config as config
 
 MIN_MEASUREMENT = 10 # minimum valid measurement that the autopilot should use
 MAX_MEASUREMENT = 40 # maximum valid measurement that the autopilot should use
-SENSOR_TYPE = mavutil.mavlink.MAV_OPTICAL_FLOW
+SENSOR_TYPE = 10
+if hasattr(mavutil.mavlink, 'MAV_OPTICAL_FLOW'):
+    SENSOR_TYPE = mavutil.mavlink.MAV_OPTICAL_FLOW
+
 SENSOR_ID = 1
 ORIENTATION = mavutil.mavlink.MAV_SENSOR_ROTATION_PITCH_270 # downward facing
 COVARIENCE = 0

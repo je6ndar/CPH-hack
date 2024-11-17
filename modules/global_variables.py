@@ -1,4 +1,4 @@
-from config import Settings
+from modules.config import Settings
 
 run = True
 recording = False

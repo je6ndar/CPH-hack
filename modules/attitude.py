@@ -1,7 +1,4 @@
 # standard libraries
-import cv2
-import os
-import shutil
 import platform
 import numpy as np
 # import json
@@ -11,10 +8,10 @@ from timeit import default_timer as timer
 # from datetime import datetime
 
 # my libraries
-from video_classes import CustomVideoCapture
-from crop_and_scale import get_cropping_and_scaling_parameters, crop_and_scale
-from find_horizon import HorizonDetector
-from global_variables import settings
+from modules.video_classes import CustomVideoCapture
+from modules.crop_and_scale import get_cropping_and_scaling_parameters, crop_and_scale
+from modules.find_horizon import HorizonDetector
+from modules.global_variables import settings
 
 ENABLE_SWITCHES = False
 ENABLE_SCREEN = False

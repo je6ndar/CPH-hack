@@ -1,11 +1,10 @@
 # standard libraries
 import cv2
-import os
 from queue import Queue
 from threading import Thread
 from time import sleep
 from timeit import default_timer as timer
-import global_variables as gv
+import modules.global_variables as gv
 import platform
 
 class CustomVideoCapture:

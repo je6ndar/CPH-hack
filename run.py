@@ -32,7 +32,7 @@ def run():
             InputFramesQueue=Frames_Camera0_Queue,
             MavlinkSendQueue=MavlinkSendQueue)
     )
-    AttitudeThread = Thread(target=attitude.proc_attitude, qwargs=dict(MavlinkSendQueue=MavlinkSendQueue))
+    AttitudeThread = Thread(target=attitude.proc_attitude, kwargs=dict(MavlinkSendQueue=MavlinkSendQueue))
     # save the data on SD card
     #SaveThread = Thread(target=save.save_data, kwargs=dict(SaveQueue=SaveQueue))
     # recv/send data via mavlink
