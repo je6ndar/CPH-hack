@@ -64,11 +64,12 @@ def proc_attitude():
 
             output = horizon_detector.find_horizon(scaled_and_cropped_frame)
             roll, pitch, variance, is_good_horizon, _ = output
+            # USE THESE VARIABLES IN THE REST OF THE CODE
             print(f'Camera Roll: {roll}, Pitch: {pitch}, Variance: {variance}, Is good horizon: {is_good_horizon}')
             with open('camera_attitude_log.txt', 'a') as f:
                 f.write(f'{time.time()} {roll} {pitch} {variance} {is_good_horizon}\n')
-
-        # USE THESE VARIABLES IN THE REST OF THE CODE
+        else:
+            print('No frame')
 
     print('---------------------END---------------------')
 
