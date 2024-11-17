@@ -48,9 +48,10 @@ def proc_attitude():
         INFERENCE_RESOLUTION = (inference_width, inference_height)
         print(f'The inference resolution has been adjusted to: {INFERENCE_RESOLUTION}')
 
-    sources = list_and_open_cameras()
-    print(f'Sources: {sources}')
-    video_capture = CustomVideoCapture(RESOLUTION, str(sources[0]))
+    # sources = list_and_open_cameras()
+    # print(f'Sources: {sources}')
+    # video_capture = CustomVideoCapture(RESOLUTION, str(sources[0]))
+    video_capture = CustomVideoCapture(RESOLUTION, SOURCE)
 
     video_capture.start_stream()
     sleep(1)
