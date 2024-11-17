@@ -59,8 +59,9 @@ def proc_attitude():
     crop_and_scale_parameters = get_cropping_and_scaling_parameters(video_capture.resolution, INFERENCE_RESOLUTION)
     horizon_detector = HorizonDetector(EXCLUSION_THRESH, FOV, ACCEPTABLE_VARIANCE, INFERENCE_RESOLUTION)
     while True:
-        frame = video_capture.cap.read()
-        if frame:
+        ret, frame = video_capture.cap.read()
+        # frame = video_capture.read_frame()
+        if ret:
             scaled_and_cropped_frame = crop_and_scale(frame, **crop_and_scale_parameters)
 
             output = horizon_detector.find_horizon(scaled_and_cropped_frame)
