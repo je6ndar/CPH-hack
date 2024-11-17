@@ -1,3 +1,4 @@
+from modules import save
 import modules.state as state
 import modules.camera0 as camera0
 import modules.camera1 as camera1
@@ -34,7 +35,7 @@ def run():
         #     InputFramesQueue=Frames_Camera0_Queue,
         #     MavlinkSendQueue=MavlinkSendQueue)
     # )
-    AttitudeThread = Thread(target=attitude.proc_attitude, kwargs=dict())
+    AttitudeThread = Thread(target=attitude.proc_attitude, kwargs=dict(SaveQueue=SaveQueue))
     # save the data on SD card
     SaveThread = Thread(target=save.save_data, kwargs=dict(SaveQueue=SaveQueue))
     # recv/send data via mavlink
