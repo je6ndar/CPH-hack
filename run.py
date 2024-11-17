@@ -3,7 +3,7 @@ import modules.camera0 as camera0
 import modules.camera1 as camera1
 import modules.mavlink as mavlink
 import modules.optical_flow as optflow
-import modules.optical_flow as optflow
+import modules.attitude as attitude
 
 import modules.config as config
 
@@ -32,7 +32,7 @@ def run():
             InputFramesQueue=Frames_Camera0_Queue,
             MavlinkSendQueue=MavlinkSendQueue)
     )
-    # AttitudeThread = Thread(target=attitude.proc_attitude, qwargs=dict(MavlinkSendQueue=MavlinkSendQueue))
+    AttitudeThread = Thread(target=attitude.proc_attitude, qwargs=dict(MavlinkSendQueue=MavlinkSendQueue))
     # save the data on SD card
     #SaveThread = Thread(target=save.save_data, kwargs=dict(SaveQueue=SaveQueue))
     # recv/send data via mavlink
