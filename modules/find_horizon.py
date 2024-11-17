@@ -32,7 +32,7 @@ class HorizonDetector:
         self.predicted_pitch = None
         self.recent_horizons = [None, None]
 
-    def find_horizon(self, frame:np.ndarray, diagnostic_mode:bool=False):
+    def find_horizon(self, frame:np.ndarray):
         """
         frame: the image in which you want to find the horizon
         diagnostic_mode: if True, draws a diagnostic visualization. Should only be used for
@@ -73,8 +73,6 @@ class HorizonDetector:
             self._predict_next_horizon()
 
             # convert the diagnostic image to color
-            if diagnostic_mode:
-                mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
             return roll, pitch, variance, is_good_horizon, mask
 
         # find the contour with the largest area
@@ -181,46 +179,6 @@ class HorizonDetector:
         # convert to numpy array
         x_filtered = np.array(x_filtered)
         y_filtered = np.array(y_filtered)
-
-        # Draw the diagnostic information.
-        # Only use for diagnostics, as this slows down inferences. 
-        if diagnostic_mode:
-            # scale up the diagnostic image to make it easier to see
-            desired_height = 500
-            scale_factor = desired_height / frame.shape[0]
-            desired_width = int(np.round(frame.shape[1] * scale_factor))
-            desired_dimensions = (desired_width, desired_height)
-            mask = cv2.resize(mask, desired_dimensions)
-            # convert the diagnostic image to color
-            mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
-
-            # draw the abbreviated points
-            for n, i in enumerate(x_abbr):
-                circle_x = int(np.round(i * scale_factor))
-                circle_y = int(np.round(y_abbr[n] * scale_factor))
-                cv2.circle(mask, (circle_x, circle_y), 5, (0,0,255), -1)
-            # draw the filtered points
-            for n, i in enumerate(x_filtered):
-                circle_x = int(np.round(i * scale_factor))
-                circle_y = int(np.round(y_filtered[n] * scale_factor))
-                cv2.circle(mask, (circle_x, circle_y), 5, (0,255,0), -1)
-            # draw the predicted horizon, if there is one
-            if self.predicted_roll:
-                lower_pitch = self.predicted_pitch + self.exclusion_thresh
-                draw_horizon(mask, self.predicted_roll, lower_pitch, self.fov, (0,150,255),  False)
-                upper_pitch = self.predicted_pitch - self.exclusion_thresh
-                draw_horizon(mask, self.predicted_roll, upper_pitch, self.fov, (0,150,255),  False)
-                cv2.putText(mask, 'Horizon Lock',(20,40),cv2.FONT_HERSHEY_COMPLEX_SMALL,1,(0,150,255),1,cv2.LINE_AA)
-
-            # for testing
-            _, edges_binary = cv2.threshold(edges,10,255,cv2.THRESH_BINARY)
-            edges_binary = cv2.resize(edges_binary, desired_dimensions)
-            cv2.imshow('canny', edges_binary)
-            blue_filtered_greyscale = cv2.resize(blue_filtered_greyscale, desired_dimensions)
-            cv2.imshow('blue_filtered_greyscale', blue_filtered_greyscale)
-            mask = cv2.resize(mask, desired_dimensions)
-            cv2.imshow('mask', mask)
-                
         # Return None values for horizon, since too few points were found.
         if x_filtered.shape[0] < 12:
             self._predict_next_horizon()
@@ -333,57 +291,3 @@ class HorizonDetector:
             pitch2 = self.recent_horizons[1][1]
             pitch_delta = pitch2 - pitch1
             self.predicted_pitch = pitch2 + pitch_delta
-
-if __name__ == "__main__":
-    import numpy as np
-    from timeit import default_timer as timer
-    from crop_and_scale import get_cropping_and_scaling_parameters, crop_and_scale
-
-    ITERATIONS = 1000
-
-    # load the image
-    path = r"C:\Users\Owner\Desktop\horizon_detector\images\sun_burst.png"
-    frame = cv2.imread(path)
-
-    # define some variables related to cropping and scaling
-    INFERENCE_RESOLUTION = (100, 100)
-    RESOLUTION = frame.shape[1::-1] # extract the resolution from the frame
-    CROP_AND_SCALE_PARAM = get_cropping_and_scaling_parameters(RESOLUTION, INFERENCE_RESOLUTION)
-    EXCLUSION_THRESH = 5 # degrees of pitch above and below the horizon
-    FOV = 48.8
-    ACCEPTABLE_VARIANCE = 1.3 
-
-    # define the HorizonDetector
-    frame_small = crop_and_scale(frame, **CROP_AND_SCALE_PARAM)
-    horizon_detector = HorizonDetector(EXCLUSION_THRESH, FOV, ACCEPTABLE_VARIANCE, INFERENCE_RESOLUTION)
-
-    # find the horizon
-    print('Starting perf test...')
-    t1 = timer()
-    for n in range(ITERATIONS):
-        # scale the images down
-        frame_small = crop_and_scale(frame, **CROP_AND_SCALE_PARAM)
-        output = horizon_detector.find_horizon(frame_small, diagnostic_mode=False)
-
-    t2 = timer()
-    elapsed_time = t2 - t1
-    fps = np.round(ITERATIONS / elapsed_time, decimals=2)
-    print(f'Finished at {fps} FPS.')
-
-    # draw the horizon
-    output = horizon_detector.find_horizon(frame_small, diagnostic_mode=True)
-    roll, pitch, variance, is_good_horizon, mask = output
-    color = (255,0,0)
-    draw_horizon(frame, roll, pitch, FOV, color, True)
-    print(f'Calculated roll: {roll}')
-    print(f'Calculated pitch: {pitch}')
-
-    # draw center circle
-    center = (frame.shape[1]//2, frame.shape[0]//2)
-    radius = frame.shape[0]//100
-    cv2.circle(frame, center, radius, (255,0,0), 2)
-
-    # show results
-    cv2.imshow("frame", frame)
-    cv2.imshow("mask", mask)
-    cv2.waitKey(0)

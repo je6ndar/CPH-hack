@@ -36,7 +36,7 @@ def run():
     # save the data on SD card
     #SaveThread = Thread(target=save.save_data, kwargs=dict(SaveQueue=SaveQueue))
     # recv/send data via mavlink
-    MavlinkThread = Thread(target=mavlink.proc_mavlink, kwargs=dict(MavlinkSendQueue=MavlinkSendQueue, SaveQueue=SaveQueue))
+    MavlinkThread = Thread(target=mavlink.proc_mavlink)
 
     # create visual imgs
     #WebShowThread = Thread(target=web.web_show, kwargs=dict(WebShowQueue=WebShowQueue))
