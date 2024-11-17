@@ -39,16 +39,3 @@ def crop_and_scale(frame, cropping_start, cropping_end, scale_factor):
     # resize the image
     frame = cv2.resize(frame, (0, 0), fx=scale_factor, fy=scale_factor)
     return frame
-
-if __name__ == "__main__":
-    path = 'training_data/sample_images/sample_horizon_corrected.png'
-    input_frame = cv2.imread(path)
-    input_frame_resolution = input_frame.shape[1::-1]
-    print(input_frame_resolution)
-    desired_resolution = (100, 100)
-    crop_and_scale_parameters = get_cropping_and_scaling_parameters(input_frame_resolution, desired_resolution)
-    output_frame = crop_and_scale(input_frame, **crop_and_scale_parameters)
-    cv2.imshow("input_frame",input_frame)
-    cv2.imshow("output_frame",output_frame)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows

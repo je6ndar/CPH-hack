@@ -13,8 +13,8 @@ settings_dict = {
     'servos_reversed': 0,
     'source': '0',
     'fps': 30,
-    'inference_resolution': '(640,480)',
-    'resolution': '(640,480)',
+    'inference_resolution': (640,480),
+    'resolution': (640,480),
     'acceptable_variance': 1.3,
     'exclusion_thresh': 4,       
     # FOV constant for Raspberry Pi Camera v2

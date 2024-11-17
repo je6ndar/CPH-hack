@@ -13,26 +13,26 @@ from threading import Thread
 import time, sys, os
 
 def run():
-    Frames_Camera0_Queue = queue.Queue() # keep raw picam frames #RawFramesQueue
-    Frames_Camera1_Queue = queue.Queue() # keep all data to save on SD card - frames,mavlink msg, target msg
-    MavlinkSendQueue = queue.Queue() # msgs to send via mavlink
-    WebShowQueue = queue.Queue() # img to visualise via web-server
+    # Frames_Camera0_Queue = queue.Queue() # keep raw picam frames #RawFramesQueue
+    # Frames_Camera1_Queue = queue.Queue() # keep all data to save on SD card - frames,mavlink msg, target msg
+    # MavlinkSendQueue = queue.Queue() # msgs to send via mavlink
+    # WebShowQueue = queue.Queue() # img to visualise via web-server
 
     #get frames from camera0
-    ProcessCamera0Thread= Thread(target=camera0.process_usbcam, kwargs=\
-        dict(RawFramesQueue=Frames_Camera0_Queue))
+    # ProcessCamera0Thread= Thread(target=camera0.process_usbcam, kwargs=\
+    #     dict(RawFramesQueue=Frames_Camera0_Queue))
     
     #get frames from camera1
-    ProcessCamera1Thread = Thread(target=camera1.process_usbcam, kwargs=\
-        dict(RawFramesQueue=Frames_Camera1_Queue))
+    # ProcessCamera1Thread = Thread(target=camera1.process_usbcam, kwargs=\
+    #     dict(RawFramesQueue=Frames_Camera1_Queue))
     
     # main frame processing, target detection/tracking
-    OpticalFlowThread = Thread(target=optflow.proc_optflow, kwargs=\
-        dict(
-            InputFramesQueue=Frames_Camera0_Queue,
-            MavlinkSendQueue=MavlinkSendQueue)
-    )
-    AttitudeThread = Thread(target=attitude.proc_attitude, kwargs=dict(MavlinkSendQueue=MavlinkSendQueue))
+    OpticalFlowThread = Thread(target=optflow.proc_optflow, kwargs=dict())
+        # dict(
+        #     InputFramesQueue=Frames_Camera0_Queue,
+        #     MavlinkSendQueue=MavlinkSendQueue)
+    # )
+    AttitudeThread = Thread(target=attitude.proc_attitude, kwargs=dict())
     # save the data on SD card
     #SaveThread = Thread(target=save.save_data, kwargs=dict(SaveQueue=SaveQueue))
     # recv/send data via mavlink
@@ -43,14 +43,14 @@ def run():
     # serve web pages and screaming MJPEG
     #WebServerThread = Thread(target=web.server_thread)
 
-    CompositeThread = Thread(target=composite.get_image, kwargs=dict(FramesQueue=WebShowQueue))
+    # CompositeThread = Thread(target=composite.get_image, kwargs=dict(FramesQueue=WebShowQueue))
 
-
-    threads = [ProcessPicamThread, ProcessThread, MavlinkThread, SaveThread]
-    if config.USE_WEB:
-        threads += [WebShowThread, WebServerThread]
-    else:
-        threads += [CompositeThread]
+    # threads = [ProcessPicamThread, ProcessThread, MavlinkThread, SaveThread]
+    threads = [OpticalFlowThread, AttitudeThread, MavlinkThread]
+    # if config.USE_WEB:
+    #     threads += [WebShowThread, WebServerThread]
+    # else:
+    #     threads += [CompositeThread]
         
     for th in threads:
          th.start()

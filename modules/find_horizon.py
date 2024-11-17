@@ -60,7 +60,7 @@ class HorizonDetector:
         # find contours
         # chain = cv2.CHAIN_APPROX_SIMPLE
         chain = cv2.CHAIN_APPROX_NONE 
-        if IS_STATION: # for raspberry pi
+        if not IS_STATION: # for raspberry pi
             _, contours, _ = cv2.findContours(mask, cv2.RETR_TREE, chain) 
         else: # for windows
             contours, _ = cv2.findContours(mask, cv2.RETR_TREE, chain)

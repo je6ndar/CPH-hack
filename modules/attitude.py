@@ -35,6 +35,7 @@ def proc_attitude():
         INFERENCE_RESOLUTION = (640, 480)
         print(f'Inference resolution has been adjusted to the recommended '\
             f'resolution of {INFERENCE_RESOLUTION}.')
+    print(f'Inference resolution: {INFERENCE_RESOLUTION}, {INFERENCE_RESOLUTION[0]}, {INFERENCE_RESOLUTION[1]}')
     inference_aspect_ratio = INFERENCE_RESOLUTION[0]/INFERENCE_RESOLUTION[1]
     aspect_ratio = RESOLUTION[0]/RESOLUTION[1]
     if inference_aspect_ratio > aspect_ratio:
@@ -50,13 +51,16 @@ def proc_attitude():
     video_capture.start_stream()
     sleep(1)
 
-    crop_and_scale_parameters = get_cropping_and_scaling_parameters(video_capture.resolution, INFERENCE_RESOLUTION)
-    horizon_detector = HorizonDetector(EXCLUSION_THRESH, FOV, ACCEPTABLE_VARIANCE, INFERENCE_RESOLUTION)
-    frame = video_capture.read_frame()
+    while True:
+        crop_and_scale_parameters = get_cropping_and_scaling_parameters(video_capture.resolution, INFERENCE_RESOLUTION)
+        horizon_detector = HorizonDetector(EXCLUSION_THRESH, FOV, ACCEPTABLE_VARIANCE, INFERENCE_RESOLUTION)
+        frame = video_capture.read_frame()
 
-    scaled_and_cropped_frame = crop_and_scale(frame, **crop_and_scale_parameters)
+        scaled_and_cropped_frame = crop_and_scale(frame, **crop_and_scale_parameters)
 
-    output = horizon_detector.find_horizon(scaled_and_cropped_frame)
-    roll, pitch, variance, is_good_horizon, _ = output
+        output = horizon_detector.find_horizon(scaled_and_cropped_frame)
+        roll, pitch, variance, is_good_horizon, _ = output
+        print(f'Roll: {roll}, Pitch: {pitch}, Variance: {variance}, Is good horizon: {is_good_horizon}')
+        # USE THESE VARIABLES IN THE REST OF THE CODE
 
-    return roll, pitch, variance, is_good_horizon
+    print('---------------------END---------------------')
