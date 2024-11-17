@@ -26,7 +26,10 @@ class CustomVideoCapture:
         if os == "Darwin" or self.using_camera == False:
             self.cap = cv2.VideoCapture(self.source)
         elif self.using_camera == True:
-            self.cap = cv2.VideoCapture(self.source, cv2.CAP_DSHOW)
+            self.cap = cv2.VideoCapture(self.source)
+            # self.cap = cv2.VideoCapture(self.source, cv2.CAP_DSHOW)
+        # if self.using_camera == True:
+        #     self.cap = cv2.VideoCapture(self.source, cv2.CAP_DSHOW)
             
         # define the resolution
         if self.using_camera:
