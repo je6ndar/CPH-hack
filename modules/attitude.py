@@ -58,20 +58,20 @@ def proc_attitude():
 
     crop_and_scale_parameters = get_cropping_and_scaling_parameters(video_capture.resolution, INFERENCE_RESOLUTION)
     horizon_detector = HorizonDetector(EXCLUSION_THRESH, FOV, ACCEPTABLE_VARIANCE, INFERENCE_RESOLUTION)
-    while True:
-        ret, frame = video_capture.cap.read()
-        # frame = video_capture.read_frame()
-        if ret:
-            scaled_and_cropped_frame = crop_and_scale(frame, **crop_and_scale_parameters)
+    with open('camera_attitude_log.txt', 'a') as f:
+        while True:
+            # ret, frame = video_capture.cap.read()
+            frame = video_capture.read_frame()
+            if frame is not None:
+                scaled_and_cropped_frame = crop_and_scale(frame, **crop_and_scale_parameters)
 
-            output = horizon_detector.find_horizon(scaled_and_cropped_frame)
-            roll, pitch, variance, is_good_horizon, _ = output
-            # USE THESE VARIABLES IN THE REST OF THE CODE
-            print(f'Camera Roll: {roll}, Pitch: {pitch}, Variance: {variance}, Is good horizon: {is_good_horizon}')
-            with open('camera_attitude_log.txt', 'a') as f:
+                output = horizon_detector.find_horizon(scaled_and_cropped_frame)
+                roll, pitch, variance, is_good_horizon, _ = output
+                # USE THESE VARIABLES IN THE REST OF THE CODE
+                print(f'Camera Roll: {roll}, Pitch: {pitch}, Variance: {variance}, Is good horizon: {is_good_horizon}')
                 f.write(f'{time.time()} {roll} {pitch} {variance} {is_good_horizon}\n')
-        else:
-            print('No frame')
+            else:
+                print('No frame')
 
     print('---------------------END---------------------')
 
