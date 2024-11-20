@@ -1,8 +1,10 @@
 # standard libraries
 import platform
+import queue
+from modules.save import save_data
 import numpy as np
 import time, os
-# import json
+import json
 import cv2
 from time import sleep
 from timeit import default_timer as timer
@@ -19,7 +21,9 @@ from modules.global_variables import settings
 ENABLE_SWITCHES = False
 ENABLE_SCREEN = False
 
-def proc_attitude():
+MAVLINK_SAVE_FN = 'mavlink.jsons'
+
+def proc_attitude(SaveQueue=None):
     SOURCE = settings.get_value('source')
     RESOLUTION = settings.get_value('resolution')
     INFERENCE_RESOLUTION = settings.get_value('inference_resolution')
@@ -70,7 +74,15 @@ def proc_attitude():
                 roll, pitch, variance, is_good_horizon, _ = output
                 attitudeVisual  = type.AttitudeVisual(roll, pitch)
 
-                # USE THESE VARIABLES IN THE REST OF THE CODE
+                attitudeVisual.save('data')
+
+                try:
+                    if SaveQueue:
+                        SaveQueue.put_nowait(attitudeVisual)
+                except queue.Full as err:
+
+                    print("Dropped Mavlink Message", err)
+
                 print(f'Camera Roll: {roll}, Pitch: {pitch}, Variance: {variance}, Is good horizon: {is_good_horizon}')
                 f.write(f'{time.time()} {roll} {pitch} {variance} {is_good_horizon}\n')
             else:
@@ -81,6 +93,7 @@ class AttitudeVisual:
     def __init__(self, roll, pitch):
         self.roll = roll
         self.pitch = pitch
+        self.os_time = time.time()
 
     def save(self, out_dn):
             fn = os.path.join(out_dn, MAVLINK_SAVE_FN)

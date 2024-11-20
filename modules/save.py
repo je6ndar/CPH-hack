@@ -1,6 +1,6 @@
 #from queue import Queue
 
-import os, sys, glob, re
+import os, sys, glob, re, shutil
 
 import modules.mavlink as mavlink
 
