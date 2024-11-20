@@ -4,6 +4,7 @@ import modules.camera1 as camera1
 import modules.mavlink as mavlink
 import modules.optical_flow as optflow
 import modules.attitude as attitude
+import modules.save as save
 
 import modules.config as config
 
@@ -38,9 +39,8 @@ def run():
     # save the data on SD card
     SaveThread = Thread(target=save.save_data, kwargs=dict(SaveQueue=SaveQueue))
     # recv/send data via mavlink
-    MavlinkThread = Thread(target=mavlink.proc_mavlink)
-
-
+    MavlinkThread = Thread(target=mavlink.proc_mavlink, kwargs=dict(MavlinkSendQueue=MavlinkSendQueue, SaveQueue=SaveQueue))
+    
     # create visual imgs
     #WebShowThread = Thread(target=web.web_show, kwargs=dict(WebShowQueue=WebShowQueue))
     # serve web pages and screaming MJPEG
@@ -49,7 +49,7 @@ def run():
     # CompositeThread = Thread(target=composite.get_image, kwargs=dict(FramesQueue=WebShowQueue))
 
     # threads = [ProcessPicamThread, ProcessThread, MavlinkThread, SaveThread]
-    threads = [OpticalFlowThread, AttitudeThread, MavlinkThread]
+    threads = [OpticalFlowThread, SaveThread, MavlinkThread]
     # if config.USE_WEB:
     #     threads += [WebShowThread, WebServerThread]
     # else:

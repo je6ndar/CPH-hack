@@ -182,24 +182,13 @@ def create_v_msg(v,confidence, altitude):
 def init_mavlink():
     heartbeat_msg = None
     global MAVLINK_BAUD_RATES_worked
-
-    if config.SITL == True:
-        print("MAVLINK CONNECTING TO SITL ")
-        for i in range(5):
-            mavconn = mavutil.mavlink_connection('udp::14551')
-            heartbeat_msg = mavconn.wait_heartbeat(timeout=2) 
-            if heartbeat_msg is not None:
-                print("FOUND SITL")
-                break
-
-    else:
-        for baud in MAVLINK_BAUD_RATES_worked + MAVLINK_BAUD_RATES:
-            print("MAVLINK try baud=", baud)
-            mavconn = mavutil.mavlink_connection(MAVLINK_SERIAL, baud=baud)
-            heartbeat_msg = mavconn.wait_heartbeat(timeout=2) 
-            if heartbeat_msg is not None:
-                MAVLINK_BAUD_RATES_worked = [baud]
-                break
+    for baud in MAVLINK_BAUD_RATES_worked + MAVLINK_BAUD_RATES:
+        print("MAVLINK try baud=", baud)
+        mavconn = mavutil.mavlink_connection(MAVLINK_SERIAL, baud=baud)
+        heartbeat_msg = mavconn.wait_heartbeat(timeout=2) 
+        if heartbeat_msg is not None:
+            MAVLINK_BAUD_RATES_worked = [baud]
+            break
 
         # not connected
     if not heartbeat_msg:

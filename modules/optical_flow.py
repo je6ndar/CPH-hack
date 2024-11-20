@@ -37,23 +37,25 @@ def init_and_start_camera(settings):
 def proc_optflow(MavlinkSendQueue = None):
     if not MavlinkSendQueue:
         return
-    camera = init_and_start_camera(settings)
-    _, prev_frame = camera.read()
-    prev_frame = cv2.cvtColor(prev_frame, cv2.COLOR_BGR2GRAY)
-    while True:
-        _, current_frame = camera.read()
-        current_frame = cv2.cvtColor(current_frame, cv2.COLOR_BGR2GRAY)
-        flow, confidence = lightweight_optical_flow(prev_frame, current_frame)
-        prev_frame = current_frame
-        if flow.any() == None:
-             continue    
-        print(flow[0], flow[1])
-        print(confidence)
-        optFlow = type.OpticalFlow(flow, confidence)
-        MavlinkSendQueue.put_nowait()
-        #time.sleep(1/5)
-        #print("desired quaternion:", get_quaternion(CURRENT_QUATERNION, v))
-        #stime.sleep(2)
+    print(mav.MAVCONN)
+    if mav.MAVCONN:
+        camera = init_and_start_camera(settings)
+        _, prev_frame = camera.read()
+        prev_frame = cv2.cvtColor(prev_frame, cv2.COLOR_BGR2GRAY)
+        while True:
+            _, current_frame = camera.read()
+            current_frame = cv2.cvtColor(current_frame, cv2.COLOR_BGR2GRAY)
+            flow, confidence = lightweight_optical_flow(prev_frame, current_frame)
+            prev_frame = current_frame
+            if flow is None:
+                continue    
+            print(flow[0], flow[1])
+            print(confidence)
+            optFlow = type.OpticalFlow(flow, confidence)
+            MavlinkSendQueue.put_nowait(optFlow)
+            #time.sleep(1/5)
+            #print("desired quaternion:", get_quaternion(CURRENT_QUATERNION, v))
+            #stime.sleep(2)
 
 
 def calculate_camera_motion(flow_x, flow_y, fov, width, height, distance_to_surface):
@@ -90,8 +92,8 @@ def lightweight_optical_flow(frame1, frame2):
     # gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
     gray1 = frame1
     gray2 = frame2
-    if frame1.any() == None or frame2.any() == None:
-         return None
+    if frame1 is None or frame2 is None:
+         return None, None
     # Detect sparse key points
     features = cv2.goodFeaturesToTrack(gray1, maxCorners=200, qualityLevel=0.3, minDistance=1)
     

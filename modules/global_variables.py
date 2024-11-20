@@ -11,7 +11,7 @@ settings_dict = {
     'easy_mode_limit_pitch': 10,
     'max_deflection': .4,
     'servos_reversed': 0,
-    'source': '0',
+    'source': '1',
     'fps': 30,
     'inference_resolution': (640,480),
     'resolution': (640,480),
